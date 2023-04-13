@@ -1,0 +1,61 @@
+---
+title: "MTH404 R Project"
+author: "Mustafif Khan"
+output: pdf_document
+---
+
+# Loading Required Packages
+Before the dataset can be analyzed, the following packages must be imported:
+```{r}
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+library(lubridate)
+library(gridExtra)
+library(caTools)
+library(GGally)
+```
+
+# Reading the Training and Test Data
+From the kaggle competition, we are provided the CSV data for training and testing,
+and the dataset is imported like the following:
+```{r}
+train_data <- read.csv("train.csv")
+test_data <- read.csv("test.csv")
+```
+
+With the data, we can check if we are missing values, let's first check our training data:
+```{r}
+# get the missing training values
+missing_training_values <- sapply(train_data, function(x) sum(is.na(x)))
+# create a data frame with column names and missing values
+mtv_df <- data.frame(column = names(missing_training_values), missing_values = missing_training_values)
+mtv_df
+```
+As you can notice there are data in this dataset that contains large amounts of missing values, such
+as columns like `PoolQC`, `Fence`, etc. We will be removing the columns with missing values like the following:
+```{r}
+train_data <- select(train_data, -c(LotFrontage, Alley, MasVnrType, MasVnrArea, BsmtQual , BsmtCond,BsmtExposure, BsmtFinType1, BsmtFinType2, FireplaceQu, GarageType, GarageYrBlt, GarageFinish, GarageQual, GarageCond, PoolQC, Fence , MiscFeature ))
+```
+
+Now it would be good to also check our training data for missing values it may contain:
+```{r}
+# get the missing values for the testing dataset
+missing_testing_values <- sapply(test_data, function (x) sum(is.na(x)))
+# create a data frame of the missing testing values
+mtestv_df <- data.frame(column = names(missing_testing_values), missing_values = missing_testing_values)
+mtestv_df
+```
+
+As you can see in our testing dataset we can notice columns that have high amount of missing values such as columns like `LotFrontage`, `Alley`, etc. As before we will be removing the missing values like the following:
+```{r}
+test_data <- select(test_data, -c(LotFrontage, Alley , MasVnrType, MasVnrArea, BsmtQual, BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinType2, FireplaceQu, GarageType, GarageYrBlt, GarageFinish, GarageQual, GarageCond, PoolQC, Fence, MiscFeature))
+```
+
+# Analysis of the Train Data
+To analyze the data, we will need to create models using the `lm()` function, where will be using
+`SalesPrice` as part of the formula:
+```{r}
+model <- lm(SalePrice ~., data=train_data)
+model
+```
