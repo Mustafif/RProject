@@ -14,6 +14,7 @@ library(lubridate)
 library(gridExtra)
 library(caTools)
 library(GGally)
+library(dplyr)
 ```
 
 # Reading the Training and Test Data
@@ -29,13 +30,17 @@ With the data, we can check if we are missing values, let's first check our trai
 # get the missing training values
 missing_training_values <- sapply(train_data, function(x) sum(is.na(x)))
 # create a data frame with column names and missing values
-mtv_df <- data.frame(column = names(missing_training_values), missing_values = missing_training_values)
+mtv_df <- data.frame(column = names(missing_training_values),
+                     missing_values = missing_training_values)
 mtv_df
 ```
 As you can notice there are data in this dataset that contains large amounts of missing values, such
 as columns like `PoolQC`, `Fence`, etc. We will be removing the columns with missing values like the following:
 ```{r}
-train_data <- select(train_data, -c(LotFrontage, Alley, MasVnrType, MasVnrArea, BsmtQual , BsmtCond,BsmtExposure, BsmtFinType1, BsmtFinType2, FireplaceQu, GarageType, GarageYrBlt, GarageFinish, GarageQual, GarageCond, PoolQC, Fence , MiscFeature ))
+train_data <- select(train_data, -c(LotFrontage, Alley, MasVnrType, MasVnrArea, BsmtQual ,
+                                    BsmtCond,BsmtExposure, BsmtFinType1, BsmtFinType2,
+                                    FireplaceQu, GarageType, GarageYrBlt, GarageFinish,
+                                    GarageQual, GarageCond, PoolQC, Fence , MiscFeature ))
 ```
 
 Now it would be good to also check our training data for missing values it may contain:
@@ -43,19 +48,55 @@ Now it would be good to also check our training data for missing values it may c
 # get the missing values for the testing dataset
 missing_testing_values <- sapply(test_data, function (x) sum(is.na(x)))
 # create a data frame of the missing testing values
-mtestv_df <- data.frame(column = names(missing_testing_values), missing_values = missing_testing_values)
+mtestv_df <- data.frame(column = names(missing_testing_values),
+                        missing_values = missing_testing_values)
 mtestv_df
 ```
 
-As you can see in our testing dataset we can notice columns that have high amount of missing values such as columns like `LotFrontage`, `Alley`, etc. As before we will be removing the missing values like the following:
+As you can see in our testing dataset we can notice columns that have high amount of missing values such as columns like `LotFrontage`, `Alley`, etc. As before we will be removing the columns with missing values like the following:
 ```{r}
-test_data <- select(test_data, -c(LotFrontage, Alley , MasVnrType, MasVnrArea, BsmtQual, BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinType2, FireplaceQu, GarageType, GarageYrBlt, GarageFinish, GarageQual, GarageCond, PoolQC, Fence, MiscFeature))
+test_data <- select(test_data, -c(LotFrontage, Alley , MasVnrType, MasVnrArea, BsmtQual,
+                                  BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinType2,
+                                  FireplaceQu, GarageType, GarageYrBlt, GarageFinish,
+                                  GarageQual, GarageCond, PoolQC, Fence, MiscFeature))
 ```
 
 # Analysis of the Train Data
-To analyze the data, we will need to create models using the `lm()` function, where will be using
-`SalesPrice` as part of the formula:
+Before we create a model to analyze our training data, we will need to look at the structure of our different columns
+using the `str()` function:
+
+```{r}
+str(train_data)
+```
+
+
+
+To analyze the data, we will need to create a model using the `lm()` function, where will be using
+`SalesPrice` to compare our other fields. Using the model, we can use `summary()` to find better information
+about our model, such as $R^2$.
 ```{r}
 model <- lm(SalePrice ~., data=train_data)
-model
+summary(model)
+```
+
+With the summary we can see that we have $R^2 = 0.9206$, and we can make some of the following interpretations when
+comparing `SalesPrice` with some of the most significant fields marked with `***`:
+Whenever the sales price increases by one dollar...
+
+- `PoolArea`: the pool's area will increase by $71.27 m^2$.
+- `OverallQual`: the overall quality will increase by $\$8042$.
+- `OverallCond`: the overall condition will increase by $\$5439$.
+- `LotArea`: the lot's area will increase by $0.701 m^2$.
+
+For a better visual we will be plotting graphs between the sale price and significant fields.
+```{r}
+# Plot between PoolArea and SalePrice
+ggplot(data = train_data, aes(x = PoolArea, y = SalePrice)) +
+  geom_jitter() +  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Scatter plot of Pool Area and Sales Price", x="Area (m^2)",y="Price ($)")
+
+# Plot between RoofMatl and SalePrice
+ggplot(data = train_data, aes(x = RoofMatl, y = SalePrice)) +
+  geom_jitter() +  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Plot of Roof Material and Sales Price", x="Roof Material",y="Price ($)")
 ```
