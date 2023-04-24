@@ -3,5 +3,6 @@
   <component name="RSettings">
     <option name="interpreterPath" value="/usr/bin/R" />
     <option name="loadWorkspace" value="true" />
+    <option name="saveWorkspace" value="true" />
   </component>
 </project>
