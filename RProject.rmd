@@ -125,7 +125,7 @@ plot of all the independent numerical variables and their association with our d
 # get all the numerical variables
 data.num <- data.train %>% dplyr::select(where(is.numeric))
 # get the correlation data
-data.cor <- data.frame(data.num)
+data.cor <- data.frame(data.num[, 3:21])
 correlation <- cor(data.cor)
 # display the correlation
 correlation
@@ -133,6 +133,34 @@ par(mfrow=c(1,1))
 # plot the correlation
 corrplot(correlation, method = "color")
 ```
+
+# Outliers
+
+Our data is quite accurate, but to see the effects outliers may have with `SalePrice`, we will try to plot the data
+with and without outliers to see the effect it has on us. First we need to extract outliers from the data and obtain the
+data without the outliers we'll find.
+
+```{r}
+outliers = boxplot(data.train$SalePrice, plot = FALSE)$out
+outliers_data <- data.train[which(data.train$SalePrice %in% outliers),]
+no_out_train <- data.train[-which(data.train$SalePrice %in% outliers),]
+```
+
+Now we can plot our data with outliers and without to see the effect it has on our data:
+
+```{r}
+par(mfrow=c(1,2))
+# plot the data with the outliers
+plot(data.train$LotArea, data.train$SalePrice, main = "With Outliers",
+     xlab = "Lot Area", ylab = "Sale Price" , pch="*", col = "blue", cex = 2)
+abline(lm(SalePrice ~ LotArea, data=data.train), col = "magenta", lwd = 3, lty = 2)
+plot(no_out_train$LotArea, no_out_train$SalePrice, main="Outliers removed",
+     xlab="Lot Area", ylab="Sale Price", pch="*", col="red", cex=2)
+abline(lm(SalePrice ~ LotArea, data=no_out_train), col="blue", lwd=3, lty=2)
+```
+
+As you can see, we are able to concetrate the relationship between `SalePrice` and `LotArea` by removing the outliers and find that
+most of the values for `SalePrice` range from around $\$50 000 - \$350 000$.
 
 # Accuracy of the Model
 
@@ -150,10 +178,5 @@ accuracy
 
 ## Accuracy of the Model on Test Data
 ```{r}
-model_test <- lm(SaleType ~., data=data.test)
-pred_test <- model_test$fitted.values
-tally_table <- data.frame(actual=data.test$SaleType, predicted=pred_test)
-mape_test <- mean(abs(tally_table$actual-tally_table$predicted)/tally_table$actual)
-accuracy_test <- 1-mape_test
-accuracy_test
+
 ```
