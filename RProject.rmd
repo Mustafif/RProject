@@ -176,7 +176,3 @@ accuracy
 ```
 **We can see that the accuracy of our training data model is ** \textbf{$91.51\%$}
 
-## Accuracy of the Model on Test Data
-```{r}
-
-```
